@@ -1,203 +1,551 @@
-
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>NuKudo Sentinel — Bridgepoint Financial</title>
+<link href="https://fonts.googleapis.com/css2?family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&family=DM+Mono:wght@400;500&display=swap" rel="stylesheet">
 <style>
-  * { box-sizing: border-box; margin: 0; padding: 0; }
-  body { font-family: var(--font-sans); }
-  .app { display: flex; height: 100%; min-height: 600px; }
-  .sidebar { width: 180px; min-width: 180px; background: #1A1A2E; padding: 16px 0; display: flex; flex-direction: column; }
-  .brand { padding: 0 16px 20px; border-bottom: 0.5px solid rgba(255,255,255,0.1); }
-  .brand-name { color: #E84040; font-size: 15px; font-weight: 500; letter-spacing: -0.3px; }
-  .brand-sub { color: rgba(255,255,255,0.4); font-size: 11px; margin-top: 2px; }
-  .nav { padding: 12px 0; flex: 1; }
-  .nav-item { display: flex; align-items: center; gap: 9px; padding: 9px 16px; cursor: pointer; color: rgba(255,255,255,0.5); font-size: 13px; transition: all 0.15s; }
-  .nav-item:hover { color: rgba(255,255,255,0.8); background: rgba(255,255,255,0.05); }
-  .nav-item.active { color: #fff; background: rgba(232,64,64,0.18); border-left: 2px solid #E84040; }
-  .nav-dot { width: 7px; height: 7px; border-radius: 50%; background: currentColor; opacity: 0.6; flex-shrink: 0; }
-  .main { flex: 1; background: var(--color-background-tertiary); overflow: auto; }
-  .topbar { background: var(--color-background-primary); border-bottom: 0.5px solid var(--color-border-tertiary); padding: 12px 20px; display: flex; align-items: center; justify-content: space-between; }
-  .topbar-title { font-size: 15px; font-weight: 500; color: var(--color-text-primary); }
-  .topbar-meta { font-size: 12px; color: var(--color-text-secondary); }
-  .badge { display: inline-flex; align-items: center; padding: 2px 8px; border-radius: 20px; font-size: 11px; font-weight: 500; }
-  .badge-red { background: #FCEBEB; color: #A32D2D; }
-  .badge-amber { background: #FAEEDA; color: #854F0B; }
-  .badge-green { background: #EAF3DE; color: #3B6D11; }
-  .badge-gray { background: var(--color-background-secondary); color: var(--color-text-secondary); }
-  .content { padding: 16px 20px; }
-  .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0, 1fr)); gap: 10px; margin-bottom: 16px; }
-  .stat-card { background: var(--color-background-primary); border-radius: var(--border-radius-md); border: 0.5px solid var(--color-border-tertiary); padding: 14px 16px; cursor: pointer; transition: border-color 0.15s; }
-  .stat-card:hover { border-color: var(--color-border-secondary); }
-  .stat-label { font-size: 12px; color: var(--color-text-secondary); margin-bottom: 6px; }
-  .stat-value { font-size: 26px; font-weight: 500; color: var(--color-text-primary); line-height: 1; }
-  .stat-value.red { color: #A32D2D; }
-  .stat-value.amber { color: #854F0B; }
-  .stat-value.green { color: #3B6D11; }
-  .stat-sub { font-size: 11px; color: var(--color-text-tertiary); margin-top: 4px; }
-  .panel { background: var(--color-background-primary); border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); margin-bottom: 14px; }
-  .panel-header { padding: 12px 16px; border-bottom: 0.5px solid var(--color-border-tertiary); display: flex; align-items: center; justify-content: space-between; }
-  .panel-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
-  .panel-body { padding: 0; }
-  .device-row { display: grid; grid-template-columns: 28px 1fr 80px 90px 100px 90px; align-items: center; gap: 10px; padding: 10px 16px; border-bottom: 0.5px solid var(--color-border-tertiary); cursor: pointer; transition: background 0.12s; font-size: 13px; }
-  .device-row:hover { background: var(--color-background-secondary); }
-  .device-row:last-child { border-bottom: none; }
-  .device-row.active { background: #FFF5F5; }
-  .device-icon { width: 28px; height: 28px; border-radius: 6px; display: flex; align-items: center; justify-content: center; font-size: 14px; }
-  .device-name { font-weight: 500; color: var(--color-text-primary); font-size: 13px; }
-  .device-owner { font-size: 11px; color: var(--color-text-secondary); margin-top: 1px; }
-  .risk-bar-wrap { display: flex; align-items: center; gap: 6px; }
-  .risk-bar { height: 5px; border-radius: 3px; flex: 1; background: var(--color-border-tertiary); overflow: hidden; }
-  .risk-fill { height: 100%; border-radius: 3px; }
-  .risk-num { font-size: 12px; font-weight: 500; min-width: 26px; text-align: right; }
-  .col-head { font-size: 11px; color: var(--color-text-tertiary); font-weight: 500; text-transform: uppercase; letter-spacing: 0.5px; padding: 8px 16px; }
-  .col-heads { display: grid; grid-template-columns: 28px 1fr 80px 90px 100px 90px; gap: 10px; border-bottom: 0.5px solid var(--color-border-tertiary); }
-  .alert-row { display: grid; grid-template-columns: 8px 1fr 90px 100px; align-items: center; gap: 12px; padding: 10px 16px; border-bottom: 0.5px solid var(--color-border-tertiary); cursor: pointer; transition: background 0.12s; }
-  .alert-row:hover { background: var(--color-background-secondary); }
-  .alert-row:last-child { border-bottom: none; }
-  .alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
-  .alert-title { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
-  .alert-device { font-size: 11px; color: var(--color-text-secondary); }
-  .detail-panel { background: var(--color-background-primary); border-radius: var(--border-radius-lg); border: 0.5px solid var(--color-border-tertiary); padding: 16px; }
-  .detail-title { font-size: 14px; font-weight: 500; margin-bottom: 12px; color: var(--color-text-primary); }
-  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; }
-  .detail-item { background: var(--color-background-secondary); border-radius: var(--border-radius-md); padding: 10px 12px; }
-  .detail-key { font-size: 11px; color: var(--color-text-secondary); margin-bottom: 3px; }
-  .detail-val { font-size: 13px; font-weight: 500; color: var(--color-text-primary); }
-  .risk-breakdown { margin-top: 12px; }
-  .rb-item { display: flex; align-items: center; gap: 8px; margin-bottom: 7px; font-size: 12px; }
-  .rb-label { color: var(--color-text-secondary); width: 130px; flex-shrink: 0; }
-  .rb-bar { flex: 1; height: 5px; border-radius: 3px; background: var(--color-border-tertiary); overflow: hidden; }
-  .rb-fill { height: 100%; border-radius: 3px; }
-  .rb-val { min-width: 30px; text-align: right; font-weight: 500; }
-  .patch-row { display: flex; align-items: center; gap: 10px; padding: 9px 16px; border-bottom: 0.5px solid var(--color-border-tertiary); font-size: 13px; cursor: pointer; }
-  .patch-row:hover { background: var(--color-background-secondary); }
-  .patch-row:last-child { border-bottom: none; }
-  .patch-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--color-border-tertiary); overflow: hidden; max-width: 180px; }
-  .patch-fill { height: 100%; border-radius: 3px; }
-  .view-btn { font-size: 12px; padding: 4px 10px; border: 0.5px solid var(--color-border-secondary); border-radius: 6px; background: transparent; color: var(--color-text-secondary); cursor: pointer; }
-  .view-btn:hover { background: var(--color-background-secondary); }
-  .section-label { font-size: 11px; font-weight: 500; color: var(--color-text-secondary); text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 8px; }
-  .hidden { display: none !important; }
-</style>
+  *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
+  :root {
+    --navy:        #1B2A4A;
+    --navy-light:  #243660;
+    --teal:        #0D9488;
+    --teal-light:  #14B8A6;
+    --teal-pale:   #CCFBF1;
+    --teal-bg:     #F0FDFA;
+    --bg:          #F4F6FA;
+    --bg2:         #ECEEF4;
+    --white:       #FFFFFF;
+    --border:      #DDE2EE;
+    --border2:     #C8CEDF;
+    --text:        #1E293B;
+    --text2:       #4A5568;
+    --text3:       #8896B0;
+    --red:         #DC2626;
+    --red-pale:    #FEF2F2;
+    --red-mid:     #FCA5A5;
+    --red-text:    #991B1B;
+    --amber:       #D97706;
+    --amber-pale:  #FFFBEB;
+    --amber-mid:   #FCD34D;
+    --amber-text:  #92400E;
+    --green:       #059669;
+    --green-pale:  #ECFDF5;
+    --green-text:  #065F46;
+    --gray-pale:   #F8FAFC;
+    --gray-text:   #475569;
+    --shadow-sm:   0 1px 3px rgba(27,42,74,0.08), 0 1px 2px rgba(27,42,74,0.04);
+    --shadow-md:   0 4px 12px rgba(27,42,74,0.10), 0 2px 4px rgba(27,42,74,0.06);
+    --radius:      8px;
+    --radius-lg:   12px;
+  }
+
+  html, body { height: 100%; }
+
+  body {
+    font-family: 'DM Sans', sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    font-size: 14px;
+    line-height: 1.5;
+  }
+
+  .app { display: flex; height: 100vh; overflow: hidden; }
+
+  /* ── SIDEBAR ── */
+  .sidebar {
+    width: 220px;
+    min-width: 220px;
+    background: var(--navy);
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+  }
+
+  .brand {
+    padding: 20px 18px 16px;
+    border-bottom: 1px solid rgba(255,255,255,0.08);
+  }
+  .brand-logo {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    margin-bottom: 6px;
+  }
+  .brand-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--teal-light);
+    box-shadow: 0 0 8px rgba(20,184,166,0.6);
+    flex-shrink: 0;
+  }
+  .brand-name { color: #fff; font-size: 15px; font-weight: 600; letter-spacing: -0.3px; }
+  .brand-client {
+    font-size: 11px;
+    color: rgba(255,255,255,0.4);
+    padding-left: 16px;
+    font-weight: 300;
+  }
+
+  .nav { padding: 10px 0; flex: 1; }
+  .nav-section {
+    font-size: 9px;
+    font-weight: 600;
+    letter-spacing: 1.2px;
+    text-transform: uppercase;
+    color: rgba(255,255,255,0.25);
+    padding: 14px 18px 6px;
+  }
+  .nav-item {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    padding: 9px 18px;
+    cursor: pointer;
+    color: rgba(255,255,255,0.5);
+    font-size: 13px;
+    font-weight: 400;
+    transition: all 0.15s;
+    border-left: 2px solid transparent;
+    position: relative;
+  }
+  .nav-item:hover { color: rgba(255,255,255,0.85); background: rgba(255,255,255,0.05); }
+  .nav-item.active {
+    color: #fff;
+    background: rgba(13,148,136,0.15);
+    border-left-color: var(--teal-light);
+    font-weight: 500;
+  }
+  .nav-icon { width: 16px; height: 16px; opacity: 0.7; flex-shrink: 0; }
+  .nav-item.active .nav-icon { opacity: 1; }
+  .nav-badge {
+    margin-left: auto;
+    background: var(--red);
+    color: #fff;
+    font-size: 10px;
+    font-weight: 600;
+    padding: 1px 6px;
+    border-radius: 10px;
+    min-width: 20px;
+    text-align: center;
+  }
+
+  .sidebar-footer {
+    padding: 14px 18px;
+    border-top: 1px solid rgba(255,255,255,0.08);
+    font-size: 11px;
+    color: rgba(255,255,255,0.25);
+  }
+  .sidebar-footer strong { color: rgba(255,255,255,0.5); display: block; margin-bottom: 2px; font-size: 12px; }
+
+  /* ── MAIN ── */
+  .main { flex: 1; display: flex; flex-direction: column; overflow: hidden; }
+
+  .topbar {
+    background: var(--white);
+    border-bottom: 1px solid var(--border);
+    padding: 12px 24px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-shrink: 0;
+    box-shadow: var(--shadow-sm);
+  }
+  .topbar-left { display: flex; flex-direction: column; gap: 2px; }
+  .topbar-title { font-size: 16px; font-weight: 600; color: var(--text); letter-spacing: -0.3px; }
+  .topbar-meta { font-size: 12px; color: var(--text3); }
+  .topbar-right { display: flex; align-items: center; gap: 10px; }
+
+  .content { flex: 1; overflow-y: auto; padding: 20px 24px; }
+
+  /* ── BADGES ── */
+  .badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 11px;
+    font-weight: 600;
+    line-height: 1.4;
+    white-space: nowrap;
+  }
+  .badge::before { content: ''; width: 5px; height: 5px; border-radius: 50%; flex-shrink: 0; }
+  .badge-red { background: var(--red-pale); color: var(--red-text); }
+  .badge-red::before { background: var(--red); }
+  .badge-amber { background: var(--amber-pale); color: var(--amber-text); }
+  .badge-amber::before { background: var(--amber); }
+  .badge-green { background: var(--green-pale); color: var(--green-text); }
+  .badge-green::before { background: var(--green); }
+  .badge-gray { background: var(--bg2); color: var(--gray-text); }
+  .badge-gray::before { background: var(--text3); }
+  .badge-teal { background: var(--teal-pale); color: var(--teal); }
+  .badge-teal::before { background: var(--teal); }
+
+  /* ── STAT CARDS ── */
+  .stat-grid { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 12px; margin-bottom: 20px; }
+  .stat-card {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    padding: 16px 18px;
+    cursor: pointer;
+    transition: box-shadow 0.15s, border-color 0.15s;
+    box-shadow: var(--shadow-sm);
+  }
+  .stat-card:hover { box-shadow: var(--shadow-md); border-color: var(--border2); }
+  .stat-card-top { display: flex; align-items: center; justify-content: space-between; margin-bottom: 10px; }
+  .stat-label { font-size: 12px; color: var(--text3); font-weight: 500; }
+  .stat-icon { width: 32px; height: 32px; border-radius: 8px; display: flex; align-items: center; justify-content: center; }
+  .stat-icon svg { width: 16px; height: 16px; }
+  .stat-value { font-size: 28px; font-weight: 600; letter-spacing: -1px; line-height: 1; margin-bottom: 4px; }
+  .stat-sub { font-size: 11px; color: var(--text3); }
+  .stat-value.red { color: var(--red); }
+  .stat-value.amber { color: var(--amber); }
+  .stat-value.green { color: var(--green); }
+  .stat-value.navy { color: var(--navy); }
+
+  /* ── PANELS ── */
+  .panel {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    margin-bottom: 16px;
+    overflow: hidden;
+  }
+  .panel-header {
+    padding: 14px 18px;
+    border-bottom: 1px solid var(--border);
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    background: var(--white);
+  }
+  .panel-title { font-size: 13px; font-weight: 600; color: var(--text); }
+  .panel-meta { font-size: 12px; color: var(--text3); }
+
+  /* ── DASHBOARD RISK BANDS ── */
+  .risk-bands { display: grid; grid-template-columns: repeat(4, minmax(0,1fr)); gap: 10px; padding: 16px 18px; }
+  .risk-band { border-radius: var(--radius); padding: 14px; text-align: center; }
+  .risk-band-label { font-size: 10px; font-weight: 700; letter-spacing: 0.8px; text-transform: uppercase; margin-bottom: 8px; }
+  .risk-band-value { font-size: 30px; font-weight: 700; letter-spacing: -1px; line-height: 1; margin-bottom: 4px; }
+  .risk-band-sub { font-size: 11px; opacity: 0.75; }
+  .risk-critical { background: var(--red-pale); border: 1px solid var(--red-mid); }
+  .risk-critical .risk-band-label, .risk-critical .risk-band-value { color: var(--red-text); }
+  .risk-high { background: var(--amber-pale); border: 1px solid var(--amber-mid); }
+  .risk-high .risk-band-label, .risk-high .risk-band-value { color: var(--amber-text); }
+  .risk-medium { background: var(--bg); border: 1px solid var(--border); }
+  .risk-medium .risk-band-label, .risk-medium .risk-band-value { color: var(--text2); }
+  .risk-safe { background: var(--green-pale); border: 1px solid #6EE7B7; }
+  .risk-safe .risk-band-label, .risk-safe .risk-band-value { color: var(--green-text); }
+
+  /* ── MINI ALERT LIST ── */
+  .mini-alert { display: flex; align-items: center; gap: 10px; padding: 9px 0; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .mini-alert:last-child { border-bottom: none; padding-bottom: 0; }
+  .mini-dot { width: 7px; height: 7px; border-radius: 50%; flex-shrink: 0; }
+  .mini-alert-name { flex: 1; color: var(--text); }
+  .mini-patch { margin-bottom: 10px; }
+  .mini-patch-label { display: flex; justify-content: space-between; font-size: 12px; margin-bottom: 5px; }
+  .mini-patch-label span:first-child { color: var(--text2); }
+  .bar { height: 5px; border-radius: 3px; background: var(--bg2); overflow: hidden; }
+  .bar-fill { height: 100%; border-radius: 3px; background: var(--amber); }
+  .dash-cols { display: grid; grid-template-columns: 1fr 1fr; gap: 16px; }
+
+  /* ── DEVICE TABLE ── */
+  .device-layout { display: grid; grid-template-columns: 1fr 300px; gap: 16px; }
+  .tbl-header {
+    display: grid;
+    grid-template-columns: 32px 1fr 90px 100px 120px 100px;
+    gap: 10px;
+    padding: 8px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--gray-pale);
+  }
+  .tbl-col { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text3); }
+  .device-row {
+    display: grid;
+    grid-template-columns: 32px 1fr 90px 100px 120px 100px;
+    gap: 10px;
+    align-items: center;
+    padding: 10px 18px;
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .device-row:hover { background: var(--bg); }
+  .device-row:last-child { border-bottom: none; }
+  .device-row.selected { background: var(--teal-bg); }
+  .dev-icon { width: 32px; height: 32px; border-radius: 7px; background: var(--bg2); display: flex; align-items: center; justify-content: center; font-size: 14px; flex-shrink: 0; }
+  .dev-name { font-weight: 500; color: var(--text); font-size: 13px; }
+  .dev-owner { font-size: 11px; color: var(--text3); margin-top: 1px; }
+  .risk-bar-wrap { display: flex; align-items: center; gap: 6px; }
+  .risk-bar { flex: 1; height: 4px; border-radius: 2px; background: var(--bg2); overflow: hidden; }
+  .risk-fill { height: 100%; border-radius: 2px; }
+  .risk-num { font-size: 12px; font-weight: 600; min-width: 28px; text-align: right; font-family: 'DM Mono', monospace; }
+  .cell-sm { font-size: 12px; color: var(--text2); }
+
+  /* ── DEVICE DETAIL ── */
+  .detail-panel {
+    background: var(--white);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-lg);
+    box-shadow: var(--shadow-sm);
+    overflow: hidden;
+    height: fit-content;
+    position: sticky;
+    top: 0;
+  }
+  .detail-header { padding: 14px 16px; background: var(--navy); }
+  .detail-device-name { font-size: 13px; font-weight: 600; color: #fff; }
+  .detail-device-sub { font-size: 11px; color: rgba(255,255,255,0.5); margin-top: 2px; }
+  .detail-body { padding: 14px 16px; }
+  .detail-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 8px; margin-bottom: 14px; }
+  .detail-item { background: var(--gray-pale); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+  .detail-key { font-size: 10px; color: var(--text3); font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; margin-bottom: 4px; }
+  .detail-val { font-size: 13px; font-weight: 500; color: var(--text); }
+  .detail-section-title { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.7px; color: var(--text3); margin-bottom: 10px; }
+  .rb-item { display: flex; align-items: center; gap: 8px; margin-bottom: 8px; }
+  .rb-label { font-size: 11px; color: var(--text2); width: 120px; flex-shrink: 0; }
+  .rb-bar { flex: 1; height: 4px; border-radius: 2px; background: var(--bg2); overflow: hidden; }
+  .rb-fill { height: 100%; border-radius: 2px; }
+  .rb-val { font-size: 11px; font-weight: 600; min-width: 28px; text-align: right; font-family: 'DM Mono', monospace; }
+  .detail-total { display: flex; align-items: center; justify-content: space-between; padding-top: 12px; margin-top: 4px; border-top: 1px solid var(--border); }
+  .detail-total-label { font-size: 12px; font-weight: 600; color: var(--text); }
+  .detail-total-val { font-size: 22px; font-weight: 700; letter-spacing: -0.5px; font-family: 'DM Mono', monospace; }
+  .empty-detail { padding: 40px 16px; text-align: center; color: var(--text3); font-size: 13px; }
+
+  /* ── ALERTS ── */
+  .alert-row {
+    border-bottom: 1px solid var(--border);
+    cursor: pointer;
+    transition: background 0.12s;
+  }
+  .alert-row:hover { background: var(--gray-pale); }
+  .alert-row:last-child { border-bottom: none; }
+  .alert-row.expanded { background: var(--gray-pale); }
+  .alert-summary {
+    display: grid;
+    grid-template-columns: 10px 1fr 110px 120px 110px 90px;
+    gap: 12px;
+    align-items: center;
+    padding: 12px 18px;
+  }
+  .alert-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+  .alert-title-text { font-size: 13px; font-weight: 500; color: var(--text); }
+  .alert-device-text { font-size: 11px; color: var(--text3); margin-top: 2px; }
+  .alert-expand-indicator { font-size: 11px; color: var(--text3); text-align: right; transition: transform 0.2s; display: flex; align-items: center; justify-content: flex-end; gap: 4px; }
+  .alert-row.expanded .alert-expand-indicator { color: var(--teal); }
+  .alert-detail {
+    display: none;
+    padding: 0 18px 16px 40px;
+    animation: fadeIn 0.15s ease;
+  }
+  .alert-row.expanded .alert-detail { display: block; }
+  @keyframes fadeIn { from { opacity: 0; transform: translateY(-4px); } to { opacity: 1; transform: translateY(0); } }
+
+  .alert-detail-grid { display: grid; grid-template-columns: 1fr 1fr 1fr; gap: 10px; margin-bottom: 12px; }
+  .adc { background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); padding: 10px 12px; }
+  .adc-label { font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text3); margin-bottom: 4px; }
+  .adc-val { font-size: 12px; font-weight: 500; color: var(--text); }
+  .alert-desc { font-size: 12px; color: var(--text2); margin-bottom: 10px; line-height: 1.6; padding: 10px 12px; background: var(--white); border: 1px solid var(--border); border-radius: var(--radius); }
+  .alert-action { display: flex; align-items: flex-start; gap: 8px; background: var(--teal-bg); border: 1px solid var(--teal-pale); border-radius: var(--radius); padding: 10px 12px; }
+  .alert-action-icon { font-size: 14px; flex-shrink: 0; margin-top: 1px; }
+  .alert-action-content { flex: 1; }
+  .alert-action-label { font-size: 10px; font-weight: 700; text-transform: uppercase; letter-spacing: 0.5px; color: var(--teal); margin-bottom: 3px; }
+  .alert-action-text { font-size: 12px; color: var(--text2); line-height: 1.5; }
+  .alert-status-badge { display: inline-flex; align-items: center; gap: 5px; padding: 2px 8px; border-radius: 4px; font-size: 11px; font-weight: 600; }
+  .status-open { background: var(--red-pale); color: var(--red-text); }
+  .status-investigating { background: var(--amber-pale); color: var(--amber-text); }
+  .status-resolved { background: var(--green-pale); color: var(--green-text); }
+
+  .alert-tbl-header {
+    display: grid;
+    grid-template-columns: 10px 1fr 110px 120px 110px 90px;
+    gap: 12px;
+    padding: 8px 18px;
+    border-bottom: 1px solid var(--border);
+    background: var(--gray-pale);
+  }
+
+  /* ── PATCH ── */
+  .patch-fleet { padding: 16px 18px; border-bottom: 1px solid var(--border); }
+  .patch-fleet-bar { height: 10px; border-radius: 5px; background: var(--bg2); overflow: hidden; margin: 10px 0 6px; }
+  .patch-fleet-fill { height: 100%; border-radius: 5px; background: var(--amber); }
+  .patch-fleet-labels { display: flex; justify-content: space-between; font-size: 11px; color: var(--text3); }
+  .patch-row { display: flex; align-items: center; gap: 12px; padding: 11px 18px; border-bottom: 1px solid var(--border); font-size: 13px; }
+  .patch-row:last-child { border-bottom: none; }
+  .patch-info { flex: 1; }
+  .patch-device { font-weight: 500; color: var(--text); }
+  .patch-owner { font-size: 11px; color: var(--text3); }
+  .patch-bar-wrap { display: flex; align-items: center; gap: 8px; width: 200px; }
+  .patch-bar { flex: 1; height: 6px; border-radius: 3px; background: var(--bg2); overflow: hidden; }
+  .patch-fill { height: 100%; border-radius: 3px; }
+  .patch-days { font-size: 12px; font-weight: 600; font-family: 'DM Mono', monospace; white-space: nowrap; }
+
+  /* ── HIDDEN ── */
+  .view { display: none; flex-direction: column; height: 100%; }
+  .view.active { display: flex; }
+
+  /* ── SCROLLBAR ── */
+  .content::-webkit-scrollbar { width: 5px; }
+  .content::-webkit-scrollbar-track { background: transparent; }
+  .content::-webkit-scrollbar-thumb { background: var(--border2); border-radius: 3px; }
+</style>
+</head>
+<body>
 <div class="app">
-  <div class="sidebar">
+
+  <!-- SIDEBAR -->
+  <aside class="sidebar">
     <div class="brand">
-      <div class="brand-name">NuKudo Sentinel</div>
-      <div class="brand-sub">Bridgepoint Financial</div>
+      <div class="brand-logo">
+        <div class="brand-dot"></div>
+        <span class="brand-name">NuKudo Sentinel</span>
+      </div>
+      <div class="brand-client">Bridgepoint Financial</div>
     </div>
     <nav class="nav">
-      <div class="nav-item active" onclick="switchView('dashboard', this)"><span class="nav-dot"></span>Dashboard</div>
-      <div class="nav-item" onclick="switchView('devices', this)"><span class="nav-dot"></span>Devices</div>
-      <div class="nav-item" onclick="switchView('alerts', this)"><span class="nav-dot"></span>Alerts <span class="badge badge-red" style="margin-left:auto;font-size:10px;padding:1px 5px;">12</span></div>
-      <div class="nav-item" onclick="switchView('patches', this)"><span class="nav-dot"></span>Patch Status</div>
+      <div class="nav-section">Monitor</div>
+      <div class="nav-item active" onclick="switchView('dashboard', this)">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path d="M3 4a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1H4a1 1 0 01-1-1V4zm0 7a1 1 0 011-1h3a1 1 0 011 1v5a1 1 0 01-1 1H4a1 1 0 01-1-1v-5zm7-7a1 1 0 011-1h3a1 1 0 011 1v5a1 1 0 01-1 1h-3a1 1 0 01-1-1V4zm0 9a1 1 0 011-1h3a1 1 0 011 1v3a1 1 0 01-1 1h-3a1 1 0 01-1-1v-3z"/></svg>
+        Dashboard
+      </div>
+      <div class="nav-item" onclick="switchView('devices', this)">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clip-rule="evenodd"/></svg>
+        Devices
+      </div>
+      <div class="nav-item" onclick="switchView('alerts', this)">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+        Alerts
+        <span class="nav-badge" id="alerts-badge">12</span>
+      </div>
+      <div class="nav-item" onclick="switchView('patches', this)">
+        <svg class="nav-icon" viewBox="0 0 20 20" fill="currentColor"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/></svg>
+        Patch Status
+      </div>
     </nav>
-  </div>
+    <div class="sidebar-footer">
+      <strong>Sentinel v1.0</strong>
+      Demo environment · nuKudo Security
+    </div>
+  </aside>
 
-  <div class="main">
+  <!-- MAIN -->
+  <main class="main">
 
     <!-- DASHBOARD -->
-    <div id="view-dashboard">
+    <div id="view-dashboard" class="view active">
       <div class="topbar">
-        <div>
+        <div class="topbar-left">
           <div class="topbar-title">Fleet Overview</div>
-          <div class="topbar-meta">Last updated: today, 09:14 AM</div>
+          <div class="topbar-meta">Last updated: today, 09:14 AM · 422 devices monitored</div>
         </div>
-        <span class="badge badge-red">3 Critical devices</span>
+        <div class="topbar-right">
+          <span class="badge badge-red">3 Critical devices</span>
+        </div>
       </div>
       <div class="content">
         <div class="stat-grid">
-          <div class="stat-card" onclick="switchView('devices', document.querySelector('.nav-item:nth-child(2)'))">
-            <div class="stat-label">Total devices</div>
-            <div class="stat-value">422</div>
+          <div class="stat-card" onclick="switchView('devices', document.querySelector('.nav-item:nth-child(3)'))">
+            <div class="stat-card-top">
+              <span class="stat-label">Total devices</span>
+              <div class="stat-icon" style="background:#EEF2FF;">
+                <svg viewBox="0 0 20 20" fill="#4F46E5"><path fill-rule="evenodd" d="M3 5a2 2 0 012-2h10a2 2 0 012 2v8a2 2 0 01-2 2h-2.22l.123.489.804.804A1 1 0 0113 18H7a1 1 0 01-.707-1.707l.804-.804L7.22 15H5a2 2 0 01-2-2V5zm5.771 7H5V5h10v7H8.771z" clip-rule="evenodd"/></svg>
+              </div>
+            </div>
+            <div class="stat-value navy">422</div>
             <div class="stat-sub">Across 3 offices</div>
           </div>
-          <div class="stat-card" onclick="switchView('alerts', document.querySelector('.nav-item:nth-child(3)'))">
-            <div class="stat-label">High/Critical risk</div>
+          <div class="stat-card" onclick="switchView('alerts', document.querySelector('.nav-item:nth-child(4)'))">
+            <div class="stat-card-top">
+              <span class="stat-label">High / Critical risk</span>
+              <div class="stat-icon" style="background:#FEF2F2;">
+                <svg viewBox="0 0 20 20" fill="#DC2626"><path fill-rule="evenodd" d="M8.257 3.099c.765-1.36 2.722-1.36 3.486 0l5.58 9.92c.75 1.334-.213 2.98-1.742 2.98H4.42c-1.53 0-2.493-1.646-1.743-2.98l5.58-9.92zM11 13a1 1 0 11-2 0 1 1 0 012 0zm-1-8a1 1 0 00-1 1v3a1 1 0 002 0V6a1 1 0 00-1-1z" clip-rule="evenodd"/></svg>
+              </div>
+            </div>
             <div class="stat-value red">38</div>
-            <div class="stat-sub">Require attention</div>
+            <div class="stat-sub">Require immediate attention</div>
           </div>
-          <div class="stat-card" onclick="switchView('alerts', document.querySelector('.nav-item:nth-child(3)'))">
-            <div class="stat-label">Active alerts</div>
+          <div class="stat-card" onclick="switchView('alerts', document.querySelector('.nav-item:nth-child(4)'))">
+            <div class="stat-card-top">
+              <span class="stat-label">Active alerts</span>
+              <div class="stat-icon" style="background:#FFFBEB;">
+                <svg viewBox="0 0 20 20" fill="#D97706"><path d="M10 2a6 6 0 00-6 6v3.586l-.707.707A1 1 0 004 14h12a1 1 0 00.707-1.707L16 11.586V8a6 6 0 00-6-6zM10 18a3 3 0 01-3-3h6a3 3 0 01-3 3z"/></svg>
+              </div>
+            </div>
             <div class="stat-value amber">12</div>
             <div class="stat-sub">Unresolved</div>
           </div>
-          <div class="stat-card" onclick="switchView('patches', document.querySelector('.nav-item:nth-child(4)'))">
-            <div class="stat-label">Fleet patched</div>
+          <div class="stat-card" onclick="switchView('patches', document.querySelector('.nav-item:nth-child(5)'))">
+            <div class="stat-card-top">
+              <span class="stat-label">Fleet patched</span>
+              <div class="stat-icon" style="background:#ECFDF5;">
+                <svg viewBox="0 0 20 20" fill="#059669"><path fill-rule="evenodd" d="M4 2a1 1 0 011 1v2.101a7.002 7.002 0 0111.601 2.566 1 1 0 11-1.885.666A5.002 5.002 0 005.999 7H9a1 1 0 010 2H4a1 1 0 01-1-1V3a1 1 0 011-1zm.008 9.057a1 1 0 011.276.61A5.002 5.002 0 0014.001 13H11a1 1 0 110-2h5a1 1 0 011 1v5a1 1 0 11-2 0v-2.101a7.002 7.002 0 01-11.601-2.566 1 1 0 01.61-1.276z" clip-rule="evenodd"/></svg>
+              </div>
+            </div>
             <div class="stat-value amber">67%</div>
             <div class="stat-sub">Target: 90%+</div>
           </div>
         </div>
 
-        <!-- Risk distribution -->
         <div class="panel">
           <div class="panel-header">
-            <span class="panel-title">Risk distribution across fleet</span>
-            <span class="badge badge-gray">422 devices</span>
+            <span class="panel-title">Risk distribution</span>
+            <span class="panel-meta">422 devices total</span>
           </div>
-          <div style="padding:16px; display:flex; gap:12px; align-items:stretch;">
-            <div style="flex:1; background:#FCEBEB; border-radius:8px; padding:14px; border:0.5px solid #F7C1C1;">
-              <div style="font-size:11px;font-weight:500;color:#A32D2D;margin-bottom:4px;">CRITICAL</div>
-              <div style="font-size:28px;font-weight:500;color:#791F1F;">3</div>
-              <div style="font-size:11px;color:#A32D2D;margin-top:2px;">Score 90-100</div>
+          <div class="risk-bands">
+            <div class="risk-band risk-critical">
+              <div class="risk-band-label">Critical</div>
+              <div class="risk-band-value">3</div>
+              <div class="risk-band-sub">Score 90–100</div>
             </div>
-            <div style="flex:1; background:#FAEEDA; border-radius:8px; padding:14px; border:0.5px solid #FAC775;">
-              <div style="font-size:11px;font-weight:500;color:#854F0B;margin-bottom:4px;">HIGH</div>
-              <div style="font-size:28px;font-weight:500;color:#633806;">35</div>
-              <div style="font-size:11px;color:#854F0B;margin-top:2px;">Score 70-89</div>
+            <div class="risk-band risk-high">
+              <div class="risk-band-label">High</div>
+              <div class="risk-band-value">35</div>
+              <div class="risk-band-sub">Score 70–89</div>
             </div>
-            <div style="flex:2; background:var(--color-background-secondary); border-radius:8px; padding:14px; border:0.5px solid var(--color-border-tertiary);">
-              <div style="font-size:11px;font-weight:500;color:var(--color-text-secondary);margin-bottom:4px;">MEDIUM</div>
-              <div style="font-size:28px;font-weight:500;color:var(--color-text-primary);">89</div>
-              <div style="font-size:11px;color:var(--color-text-secondary);margin-top:2px;">Score 40-69</div>
+            <div class="risk-band risk-medium">
+              <div class="risk-band-label">Medium</div>
+              <div class="risk-band-value">89</div>
+              <div class="risk-band-sub">Score 40–69</div>
             </div>
-            <div style="flex:2; background:#EAF3DE; border-radius:8px; padding:14px; border:0.5px solid #C0DD97;">
-              <div style="font-size:11px;font-weight:500;color:#3B6D11;margin-bottom:4px;">LOW / SAFE</div>
-              <div style="font-size:28px;font-weight:500;color:#27500A;">295</div>
-              <div style="font-size:11px;color:#3B6D11;margin-top:2px;">Score 0-39</div>
+            <div class="risk-band risk-safe">
+              <div class="risk-band-label">Safe</div>
+              <div class="risk-band-value">295</div>
+              <div class="risk-band-sub">Score 0–39</div>
             </div>
           </div>
         </div>
 
-        <div style="display:grid;grid-template-columns:1fr 1fr;gap:14px;">
+        <div class="dash-cols">
           <div class="panel">
-            <div class="panel-header"><span class="panel-title">Top alerts by severity</span></div>
-            <div style="padding:12px 16px;">
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px;">
-                <span style="width:8px;height:8px;border-radius:50%;background:#E24B4A;flex-shrink:0;"></span>
-                <span style="flex:1;color:var(--color-text-primary);">Antivirus disabled</span>
-                <span class="badge badge-red">3 devices</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px;">
-                <span style="width:8px;height:8px;border-radius:50%;background:#E24B4A;flex-shrink:0;"></span>
-                <span style="flex:1;color:var(--color-text-primary);">Login from unknown location</span>
-                <span class="badge badge-red">2 devices</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px;font-size:13px;">
-                <span style="width:8px;height:8px;border-radius:50%;background:#BA7517;flex-shrink:0;"></span>
-                <span style="flex:1;color:var(--color-text-primary);">USB device connected</span>
-                <span class="badge badge-amber">4 devices</span>
-              </div>
-              <div style="display:flex;align-items:center;gap:8px;font-size:13px;">
-                <span style="width:8px;height:8px;border-radius:50%;background:#BA7517;flex-shrink:0;"></span>
-                <span style="flex:1;color:var(--color-text-primary);">60+ days without patch</span>
-                <span class="badge badge-amber">3 devices</span>
-              </div>
+            <div class="panel-header"><span class="panel-title">Top alerts by type</span></div>
+            <div style="padding:14px 18px;">
+              <div class="mini-alert"><div class="mini-dot" style="background:#DC2626;"></div><span class="mini-alert-name">Antivirus disabled</span><span class="badge badge-red">3 devices</span></div>
+              <div class="mini-alert"><div class="mini-dot" style="background:#DC2626;"></div><span class="mini-alert-name">Login from unknown location</span><span class="badge badge-red">2 devices</span></div>
+              <div class="mini-alert"><div class="mini-dot" style="background:#D97706;"></div><span class="mini-alert-name">USB device connected</span><span class="badge badge-amber">4 devices</span></div>
+              <div class="mini-alert"><div class="mini-dot" style="background:#D97706;"></div><span class="mini-alert-name">60+ days without patch</span><span class="badge badge-amber">3 devices</span></div>
             </div>
           </div>
           <div class="panel">
             <div class="panel-header"><span class="panel-title">Patch status by office</span></div>
-            <div style="padding:12px 16px;">
-              <div style="margin-bottom:12px;">
-                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span style="color:var(--color-text-secondary);">Austin HQ</span><span style="font-weight:500;color:#854F0B;">71%</span></div>
-                <div class="risk-bar"><div class="risk-fill" style="width:71%;background:#BA7517;"></div></div>
+            <div style="padding:14px 18px;">
+              <div class="mini-patch">
+                <div class="mini-patch-label"><span>Austin HQ</span><span style="color:#D97706;font-weight:600;">71%</span></div>
+                <div class="bar"><div class="bar-fill" style="width:71%;"></div></div>
               </div>
-              <div style="margin-bottom:12px;">
-                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span style="color:var(--color-text-secondary);">Dallas office</span><span style="font-weight:500;color:#854F0B;">63%</span></div>
-                <div class="risk-bar"><div class="risk-fill" style="width:63%;background:#BA7517;"></div></div>
+              <div class="mini-patch">
+                <div class="mini-patch-label"><span>Dallas office</span><span style="color:#D97706;font-weight:600;">63%</span></div>
+                <div class="bar"><div class="bar-fill" style="width:63%;"></div></div>
               </div>
-              <div>
-                <div style="display:flex;justify-content:space-between;font-size:12px;margin-bottom:4px;"><span style="color:var(--color-text-secondary);">Houston office</span><span style="font-weight:500;color:#854F0B;">68%</span></div>
-                <div class="risk-bar"><div class="risk-fill" style="width:68%;background:#BA7517;"></div></div>
+              <div class="mini-patch" style="margin-bottom:0;">
+                <div class="mini-patch-label"><span>Houston office</span><span style="color:#D97706;font-weight:600;">68%</span></div>
+                <div class="bar"><div class="bar-fill" style="width:68%;"></div></div>
               </div>
-              <div style="margin-top:10px;padding-top:10px;border-top:0.5px solid var(--color-border-tertiary);font-size:11px;color:var(--color-text-secondary);">Industry benchmark: 90%+</div>
+              <div style="margin-top:10px;padding-top:10px;border-top:1px solid var(--border);font-size:11px;color:var(--text3);">Industry benchmark: 90%+</div>
             </div>
           </div>
         </div>
@@ -205,53 +553,60 @@
     </div>
 
     <!-- DEVICES -->
-    <div id="view-devices" class="hidden">
+    <div id="view-devices" class="view">
       <div class="topbar">
-        <div>
+        <div class="topbar-left">
           <div class="topbar-title">Device Fleet</div>
-          <div class="topbar-meta">422 devices monitored</div>
+          <div class="topbar-meta">422 devices monitored across 3 offices</div>
         </div>
-        <span class="badge badge-amber">38 need attention</span>
+        <div class="topbar-right"><span class="badge badge-amber">38 need attention</span></div>
       </div>
       <div class="content">
-        <div style="display:grid;grid-template-columns:1fr 320px;gap:14px;">
-          <div class="panel">
-            <div class="col-heads">
+        <div class="device-layout">
+          <div class="panel" style="overflow:visible;">
+            <div class="tbl-header">
               <div></div>
-              <div class="col-head">Device / Owner</div>
-              <div class="col-head">OS</div>
-              <div class="col-head">Last seen</div>
-              <div class="col-head">Risk score</div>
-              <div class="col-head">Status</div>
+              <div class="tbl-col">Device / Owner</div>
+              <div class="tbl-col">OS</div>
+              <div class="tbl-col">Last seen</div>
+              <div class="tbl-col">Risk score</div>
+              <div class="tbl-col">Status</div>
             </div>
-            <div class="panel-body" id="device-list">
-              <!-- rows injected by JS -->
-            </div>
+            <div id="device-list"></div>
           </div>
-          <div id="device-detail" class="detail-panel" style="height:fit-content;">
-            <div class="detail-title" id="detail-device-name">Select a device</div>
-            <div id="detail-content" style="color:var(--color-text-secondary);font-size:13px;">Click a device row to see its full risk breakdown.</div>
+          <div id="device-detail">
+            <div class="detail-panel">
+              <div class="detail-header">
+                <div class="detail-device-name">No device selected</div>
+                <div class="detail-device-sub">Click a row to inspect</div>
+              </div>
+              <div class="detail-body">
+                <div class="empty-detail">Select a device from the list to see its full risk breakdown and alert history.</div>
+              </div>
+            </div>
           </div>
         </div>
       </div>
     </div>
 
     <!-- ALERTS -->
-    <div id="view-alerts" class="hidden">
+    <div id="view-alerts" class="view">
       <div class="topbar">
-        <div>
+        <div class="topbar-left">
           <div class="topbar-title">Active Alerts</div>
-          <div class="topbar-meta">12 unresolved alerts</div>
+          <div class="topbar-meta">12 unresolved alerts · Click any row to expand details</div>
         </div>
-        <span class="badge badge-red">Action required</span>
+        <div class="topbar-right"><span class="badge badge-red">Action required</span></div>
       </div>
       <div class="content">
         <div class="panel">
-          <div class="col-heads" style="grid-template-columns:8px 1fr 90px 100px;">
+          <div class="alert-tbl-header">
             <div></div>
-            <div class="col-head">Alert / Device</div>
-            <div class="col-head">Severity</div>
-            <div class="col-head">Detected</div>
+            <div class="tbl-col">Alert / Device</div>
+            <div class="tbl-col">Severity</div>
+            <div class="tbl-col">Detected</div>
+            <div class="tbl-col">Status</div>
+            <div class="tbl-col"></div>
           </div>
           <div id="alert-list"></div>
         </div>
@@ -259,102 +614,184 @@
     </div>
 
     <!-- PATCHES -->
-    <div id="view-patches" class="hidden">
+    <div id="view-patches" class="view">
       <div class="topbar">
-        <div>
+        <div class="topbar-left">
           <div class="topbar-title">Patch Status</div>
-          <div class="topbar-meta">Fleet average: 67% patched</div>
+          <div class="topbar-meta">Fleet average: 67% patched · 139 devices missing patches</div>
         </div>
-        <span class="badge badge-red">Below 90% benchmark</span>
+        <div class="topbar-right"><span class="badge badge-red">Below 90% benchmark</span></div>
       </div>
       <div class="content">
-        <div class="panel" style="margin-bottom:14px;">
-          <div style="padding:14px 16px;display:flex;align-items:center;gap:20px;">
-            <div style="flex:1;">
-              <div style="font-size:12px;color:var(--color-text-secondary);margin-bottom:6px;">Fleet patch coverage</div>
-              <div style="height:10px;border-radius:5px;background:var(--color-border-tertiary);overflow:hidden;">
-                <div style="width:67%;height:100%;background:#BA7517;border-radius:5px;"></div>
-              </div>
-              <div style="display:flex;justify-content:space-between;margin-top:4px;font-size:11px;color:var(--color-text-secondary);">
-                <span>0%</span><span style="color:#BA7517;font-weight:500;">67% current</span><span>Target 90%</span>
-              </div>
+        <div class="panel" style="margin-bottom:16px;">
+          <div class="patch-fleet">
+            <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:4px;">
+              <span style="font-size:13px;font-weight:600;color:var(--text);">Fleet patch coverage</span>
+              <span style="font-size:22px;font-weight:700;color:#D97706;font-family:'DM Mono',monospace;letter-spacing:-0.5px;">67%</span>
             </div>
-            <div style="text-align:right;">
-              <div style="font-size:28px;font-weight:500;color:#854F0B;">139</div>
-              <div style="font-size:11px;color:var(--color-text-secondary);">devices need patches</div>
+            <div class="patch-fleet-bar"><div class="patch-fleet-fill" style="width:67%;"></div></div>
+            <div class="patch-fleet-labels">
+              <span>0%</span>
+              <span style="color:#D97706;font-weight:500;">67% current · target 90%+</span>
+              <span>100%</span>
             </div>
           </div>
         </div>
         <div class="panel">
-          <div class="panel-header"><span class="panel-title">Devices with missing patches</span></div>
+          <div class="panel-header">
+            <span class="panel-title">Devices with missing patches</span>
+            <span class="panel-meta">Sorted by days since last patch</span>
+          </div>
           <div id="patch-list"></div>
         </div>
       </div>
     </div>
 
-  </div>
+  </main>
 </div>
 
 <script>
-const devices = [
-  { name: "BPFIN-WIN-047", owner: "James Reyes", os: "Windows 11", seen: "Today 08:42", score: 96, status: "critical", alerts: 2, patches: 0, issues: [{label:"Antivirus disabled",val:40,color:"#E24B4A"},{label:"60+ days unpatched",val:30,color:"#BA7517"},{label:"Login anomaly detected",val:26,color:"#F09595"}] },
-  { name: "BPFIN-WIN-023", owner: "Priya Nair", os: "Windows 10", seen: "Today 07:55", score: 91, status: "critical", alerts: 1, patches: 0, issues: [{label:"Antivirus disabled",val:45,color:"#E24B4A"},{label:"45 days unpatched",val:28,color:"#BA7517"},{label:"USB device (2x)",val:18,color:"#F09595"}] },
-  { name: "BPFIN-MAC-011", owner: "Tom Keller", os: "macOS 13", seen: "Today 09:01", score: 82, status: "high", alerts: 1, patches: 0, issues: [{label:"30+ days unpatched",val:35,color:"#BA7517"},{label:"Login from Houston",val:30,color:"#EF9F27"},{label:"Firewall off",val:17,color:"#F09595"}] },
-  { name: "BPFIN-WIN-088", owner: "Dana Cruz", os: "Windows 11", seen: "Yesterday", score: 77, status: "high", alerts: 1, patches: 0, issues: [{label:"Unauthorized software",val:40,color:"#BA7517"},{label:"15 days unpatched",val:20,color:"#EF9F27"},{label:"Outdated browser",val:17,color:"#FAC775"}] },
-  { name: "BPFIN-WIN-102", owner: "Mei Zhang", os: "Windows 11", seen: "Today 09:10", score: 34, status: "safe", alerts: 0, patches: 1, issues: [{label:"Minor software update",val:34,color:"#639922"}] },
-  { name: "BPFIN-MAC-034", owner: "Alex Torres", os: "macOS 14", seen: "Today 09:12", score: 18, status: "safe", alerts: 0, patches: 1, issues: [{label:"All checks passed",val:18,color:"#639922"}] },
+const DEVICES = [
+  { id:1, name:"BPFIN-WIN-047", owner:"James Reyes",  os:"Windows 11", seen:"Today 08:42", score:96, status:"critical", alerts:2, patched:false, issues:[{label:"Antivirus disabled",val:40,color:"#DC2626"},{label:"60+ days unpatched",val:30,color:"#D97706"},{label:"Login anomaly",val:26,color:"#F87171"}] },
+  { id:2, name:"BPFIN-WIN-023", owner:"Priya Nair",   os:"Windows 10", seen:"Today 07:55", score:91, status:"critical", alerts:1, patched:false, issues:[{label:"Antivirus disabled",val:45,color:"#DC2626"},{label:"45 days unpatched",val:28,color:"#D97706"},{label:"USB device (2x)",val:18,color:"#F87171"}] },
+  { id:3, name:"BPFIN-MAC-011", owner:"Tom Keller",   os:"macOS 13",   seen:"Today 09:01", score:82, status:"high",     alerts:1, patched:false, issues:[{label:"30+ days unpatched",val:35,color:"#D97706"},{label:"Login anomaly",val:30,color:"#D97706"},{label:"Firewall off",val:17,color:"#F87171"}] },
+  { id:4, name:"BPFIN-WIN-088", owner:"Dana Cruz",    os:"Windows 11", seen:"Yesterday",   score:77, status:"high",     alerts:1, patched:false, issues:[{label:"Unauthorized software",val:40,color:"#D97706"},{label:"15 days unpatched",val:20,color:"#D97706"},{label:"Outdated browser",val:17,color:"#FCD34D"}] },
+  { id:5, name:"BPFIN-WIN-102", owner:"Mei Zhang",   os:"Windows 11", seen:"Today 09:10", score:34, status:"safe",     alerts:0, patched:true,  issues:[{label:"Minor update pending",val:34,color:"#059669"}] },
+  { id:6, name:"BPFIN-MAC-034", owner:"Alex Torres",  os:"macOS 14",   seen:"Today 09:12", score:18, status:"safe",     alerts:0, patched:true,  issues:[{label:"All checks passed",val:18,color:"#059669"}] },
 ];
 
-const alerts = [
-  { title: "Antivirus disabled", device: "BPFIN-WIN-047 / James Reyes", severity: "Critical", detected: "Today, 06:32", color: "#E24B4A" },
-  { title: "Antivirus disabled", device: "BPFIN-WIN-023 / Priya Nair", severity: "Critical", detected: "Today, 07:10", color: "#E24B4A" },
-  { title: "Login from unknown location", device: "BPFIN-WIN-047 / James Reyes", severity: "Critical", detected: "Today, 08:01", color: "#E24B4A" },
-  { title: "USB device connected", device: "BPFIN-WIN-023 / Priya Nair", severity: "High", detected: "Yesterday, 16:45", color: "#BA7517" },
-  { title: "60+ days without patch", device: "BPFIN-WIN-047 / James Reyes", severity: "High", detected: "3 days ago", color: "#BA7517" },
-  { title: "Unauthorized software installed", device: "BPFIN-WIN-088 / Dana Cruz", severity: "High", detected: "2 days ago", color: "#BA7517" },
-  { title: "Firewall disabled", device: "BPFIN-MAC-011 / Tom Keller", severity: "High", detected: "2 days ago", color: "#BA7517" },
-  { title: "Login from unusual time (3:14 AM)", device: "BPFIN-MAC-011 / Tom Keller", severity: "Medium", detected: "Yesterday", color: "#EF9F27" },
-  { title: "60+ days without patch", device: "BPFIN-WIN-088 / Dana Cruz", severity: "Medium", detected: "5 days ago", color: "#EF9F27" },
-  { title: "USB device connected", device: "BPFIN-WIN-102 / Mei Zhang", severity: "Low", detected: "Yesterday", color: "#888780" },
-  { title: "Outdated browser version", device: "BPFIN-WIN-023 / Priya Nair", severity: "Low", detected: "4 days ago", color: "#888780" },
-  { title: "Antivirus definition outdated", device: "BPFIN-MAC-011 / Tom Keller", severity: "Low", detected: "6 days ago", color: "#888780" },
+const ALERTS = [
+  {
+    id:1, title:"Antivirus disabled", device:"BPFIN-WIN-047", owner:"James Reyes",
+    severity:"Critical", detected:"Today, 06:32 AM", status:"open", color:"#DC2626",
+    description:"The endpoint protection software on this device was disabled. This leaves the device completely unprotected against malware, ransomware, and other threats. This is the highest-priority alert in the fleet.",
+    reasoning:"Antivirus disablement accounts for 40 of the 96 risk points on this device. Combined with an unpatched OS and a login anomaly, this device is the most exposed in the Bridgepoint fleet.",
+    action:"Immediately re-enable endpoint protection via remote policy push. If remote push fails, physically quarantine the device until the IT team can restore the agent. Investigate whether the disablement was intentional (user action) or caused by malware."
+  },
+  {
+    id:2, title:"Antivirus disabled", device:"BPFIN-WIN-023", owner:"Priya Nair",
+    severity:"Critical", detected:"Today, 07:10 AM", status:"open", color:"#DC2626",
+    description:"Endpoint protection software was disabled on this device. This is the second device in the fleet with this issue, suggesting either a policy failure or a coordinated action.",
+    reasoning:"The two simultaneous antivirus disablement events across different users raise the possibility of a policy rollout failure rather than individual user action. Both should be investigated together.",
+    action:"Re-enable endpoint protection immediately. Cross-reference the timestamps of both disablement events (BPFIN-WIN-047 at 06:32 and BPFIN-WIN-023 at 07:10) to determine if they share a root cause. Escalate to security team if malware is suspected."
+  },
+  {
+    id:3, title:"Login from unknown location", device:"BPFIN-WIN-047", owner:"James Reyes",
+    severity:"Critical", detected:"Today, 08:01 AM", status:"investigating", color:"#DC2626",
+    description:"A successful login was recorded from an IP address outside Bridgepoint's known network ranges. The login occurred from a location not previously associated with this user account.",
+    reasoning:"This alert on a device already flagged for antivirus disablement significantly increases the likelihood of an active compromise. The combination of these two events on the same device warrants immediate escalation.",
+    action:"Contact James Reyes directly to verify if the login was legitimate. If unverified within 30 minutes, force-expire all active sessions and reset credentials. Review login logs for the past 72 hours on this account."
+  },
+  {
+    id:4, title:"USB device connected", device:"BPFIN-WIN-023", owner:"Priya Nair",
+    severity:"High", detected:"Yesterday, 16:45 PM", status:"open", color:"#D97706",
+    description:"An unregistered USB storage device was connected to this endpoint. USB connections are a common vector for data exfiltration and malware introduction, particularly on unprotected devices.",
+    reasoning:"USB activity on a device already missing antivirus protection significantly raises the risk. There is no way to verify the contents of what was transferred without forensic analysis.",
+    action:"Retrieve USB connection logs to identify what device was plugged in and for how long. If data transfer is suspected, initiate a forensic review. Consider enforcing USB block policy across the fleet via Group Policy."
+  },
+  {
+    id:5, title:"60+ days without patch", device:"BPFIN-WIN-047", owner:"James Reyes",
+    severity:"High", detected:"3 days ago", status:"open", color:"#D97706",
+    description:"This device has not received a security patch in 67 days. Several critical Windows vulnerabilities disclosed in the past 60 days affect this OS version and remain unmitigated.",
+    reasoning:"An unpatched device with antivirus disabled has no active or passive defenses. The combination of these two conditions makes this device the most likely entry point for any attack against Bridgepoint's network.",
+    action:"Push pending patches via WSUS or equivalent patch management tool immediately. If the device cannot receive remote patches, schedule an in-person maintenance window. Do not allow this device to connect to the corporate network until patched."
+  },
+  {
+    id:6, title:"Unauthorized software installed", device:"BPFIN-WIN-088", owner:"Dana Cruz",
+    severity:"High", detected:"2 days ago", status:"open", color:"#D97706",
+    description:"Software not on Bridgepoint's approved application list was detected on this device. The software was installed without IT authorization and its origin is unknown.",
+    reasoning:"Unauthorized software can introduce vulnerabilities, exfiltrate data, or serve as malware. The risk is elevated because the software's source and purpose have not been vetted.",
+    action:"Identify the software via installed programs list and determine if the user installed it intentionally. If origin is unknown, quarantine the software immediately. Remind the user of the acceptable use policy. Consider implementing application whitelisting."
+  },
+  {
+    id:7, title:"Firewall disabled", device:"BPFIN-MAC-011", owner:"Tom Keller",
+    severity:"High", detected:"2 days ago", status:"open", color:"#D97706",
+    description:"The macOS application firewall on this device was found disabled. The firewall acts as the first line of defense against inbound network connections from untrusted sources.",
+    reasoning:"A disabled firewall, combined with a 30-day patch gap on this device, creates an easily exploitable exposure for remote attackers, particularly when the device is used outside the corporate network.",
+    action:"Re-enable the macOS firewall via MDM profile push. Confirm the firewall is set to block all incoming connections except those explicitly allowed. Investigate why the firewall was disabled — this may indicate a misconfiguration or user tampering."
+  },
+  {
+    id:8, title:"Login from unusual time (3:14 AM)", device:"BPFIN-MAC-011", owner:"Tom Keller",
+    severity:"Medium", detected:"Yesterday", status:"investigating", color:"#D97706",
+    description:"A successful login was recorded at 3:14 AM, outside this user's normal working hours. While not conclusive, off-hours logins are a common indicator of compromised credentials.",
+    reasoning:"This alert is lower severity in isolation but elevated in context — Tom Keller's device is already flagged for a disabled firewall and a patch gap. Off-hours access on a vulnerable device warrants verification.",
+    action:"Contact Tom Keller to verify the 3:14 AM login was legitimate (e.g., travel, remote work). If unverified, treat as potential credential compromise and follow the credential reset procedure. Review all actions taken during that session."
+  },
+  {
+    id:9, title:"60+ days without patch", device:"BPFIN-WIN-088", owner:"Dana Cruz",
+    severity:"Medium", detected:"5 days ago", status:"open", color:"#D97706",
+    description:"This device has not received security patches in 28 days. While below the 60-day critical threshold, the pending patches include fixes for known actively exploited vulnerabilities.",
+    reasoning:"Combined with unauthorized software already flagged on this device, the patch gap leaves multiple unmitigated attack surfaces. The risk compounds when both conditions are present simultaneously.",
+    action:"Schedule a patch deployment for this device within the next 48 hours. Prioritize patches flagged as actively exploited. Notify Dana Cruz of the scheduled maintenance window."
+  },
+  {
+    id:10, title:"USB device connected", device:"BPFIN-WIN-102", owner:"Mei Zhang",
+    severity:"Low", detected:"Yesterday", status:"resolved", color:"#8896B0",
+    description:"A USB device was briefly connected to this endpoint. Unlike other USB alerts, this device has current antivirus protection and an up-to-date OS, reducing the risk significantly.",
+    reasoning:"USB activity is flagged by policy regardless of device health. On a fully patched, protected device, this represents a low risk. The brief connection duration suggests a routine peripheral rather than intentional data transfer.",
+    action:"Log the event for audit purposes. No immediate action required. Confirm with Mei Zhang that the USB device was a personal peripheral (keyboard, headset, etc.) rather than a storage device. If storage, request the device for inspection."
+  },
+  {
+    id:11, title:"Outdated browser version", device:"BPFIN-WIN-023", owner:"Priya Nair",
+    severity:"Low", detected:"4 days ago", status:"open", color:"#8896B0",
+    description:"The web browser on this device is running a version that is 3 releases behind current. Outdated browsers are a common attack vector for drive-by download attacks and phishing.",
+    reasoning:"While this is a low-severity alert in isolation, it adds to the cumulative risk on a device already flagged for antivirus disablement and USB activity. Browser updates should be pushed alongside the OS patch.",
+    action:"Push a browser update via software management policy. This can be resolved in the same maintenance window as the OS patch. No user action needed — the update can be pushed silently."
+  },
+  {
+    id:12, title:"Antivirus definition outdated", device:"BPFIN-MAC-011", owner:"Tom Keller",
+    severity:"Low", detected:"6 days ago", status:"open", color:"#8896B0",
+    description:"The antivirus engine on this device is running with definitions that are 6 days old. While the antivirus is active, outdated definitions reduce its ability to detect the latest threats.",
+    reasoning:"This is a low-severity issue on its own but is another layer of degraded protection on a device already missing firewall coverage and pending patches. The definitions should be updated before the firewall is re-enabled.",
+    action:"Force a definitions update via the antivirus management console. This is a quick fix — definitions sync typically takes under 5 minutes. Confirm the update completed successfully via the management dashboard."
+  },
 ];
 
-const patches = [
-  { name: "BPFIN-WIN-047", owner: "James Reyes", days: 67, pct: 0 },
-  { name: "BPFIN-WIN-023", owner: "Priya Nair", days: 45, pct: 15 },
-  { name: "BPFIN-MAC-011", owner: "Tom Keller", days: 32, pct: 40 },
-  { name: "BPFIN-WIN-088", owner: "Dana Cruz", days: 28, pct: 55 },
-  { name: "BPFIN-LIN-007", owner: "Raj Patel", days: 21, pct: 65 },
-  { name: "BPFIN-WIN-056", owner: "Sarah Kim", days: 14, pct: 78 },
+const PATCHES = [
+  { name:"BPFIN-WIN-047", owner:"James Reyes",  days:67, pct:0  },
+  { name:"BPFIN-WIN-023", owner:"Priya Nair",   days:45, pct:15 },
+  { name:"BPFIN-MAC-011", owner:"Tom Keller",   days:32, pct:40 },
+  { name:"BPFIN-WIN-088", owner:"Dana Cruz",    days:28, pct:55 },
+  { name:"BPFIN-LIN-007", owner:"Raj Patel",    days:21, pct:65 },
+  { name:"BPFIN-WIN-056", owner:"Sarah Kim",    days:14, pct:78 },
 ];
+
+function riskColor(score) {
+  if (score >= 90) return '#DC2626';
+  if (score >= 70) return '#D97706';
+  if (score >= 40) return '#F59E0B';
+  return '#059669';
+}
 
 function statusBadge(s) {
-  if (s === 'critical') return '<span class="badge badge-red">Critical</span>';
-  if (s === 'high') return '<span class="badge badge-amber">High</span>';
-  if (s === 'safe') return '<span class="badge badge-green">Safe</span>';
-  return '<span class="badge badge-gray">Low</span>';
+  const map = { critical:'badge-red', high:'badge-amber', safe:'badge-green', medium:'badge-amber' };
+  const labels = { critical:'Critical', high:'High', safe:'Safe', medium:'Medium' };
+  return `<span class="badge ${map[s]||'badge-gray'}">${labels[s]||s}</span>`;
 }
-function riskColor(score) {
-  if (score >= 90) return '#E24B4A';
-  if (score >= 70) return '#BA7517';
-  if (score >= 40) return '#EF9F27';
-  return '#639922';
-}
-function osIcon(os) {
+
+function osEmoji(os) {
   if (os.includes('Windows')) return '🖥';
-  if (os.includes('macOS')) return '💻';
+  if (os.includes('macOS'))   return '💻';
   return '🖧';
 }
 
+function alertStatusBadge(status) {
+  const map = { open:'status-open', investigating:'status-investigating', resolved:'status-resolved' };
+  const label = { open:'Open', investigating:'Investigating', resolved:'Resolved' };
+  return `<span class="alert-status-badge ${map[status]||'status-open'}">${label[status]||status}</span>`;
+}
+
+// ── Render Devices ──
 function renderDevices() {
-  const list = document.getElementById('device-list');
-  list.innerHTML = devices.map((d, i) => `
-    <div class="device-row" onclick="showDetail(${i})">
-      <div class="device-icon" style="background:var(--color-background-secondary);">${osIcon(d.os)}</div>
-      <div><div class="device-name">${d.name}</div><div class="device-owner">${d.owner}</div></div>
-      <div style="font-size:12px;color:var(--color-text-secondary);">${d.os.split(' ').slice(0,1).join(' ')}</div>
-      <div style="font-size:12px;color:var(--color-text-secondary);">${d.seen}</div>
+  document.getElementById('device-list').innerHTML = DEVICES.map((d,i) => `
+    <div class="device-row" onclick="showDeviceDetail(${i})">
+      <div class="dev-icon">${osEmoji(d.os)}</div>
+      <div>
+        <div class="dev-name">${d.name}</div>
+        <div class="dev-owner">${d.owner}</div>
+      </div>
+      <div class="cell-sm">${d.os.split(' ')[0]}</div>
+      <div class="cell-sm">${d.seen}</div>
       <div class="risk-bar-wrap">
         <div class="risk-bar"><div class="risk-fill" style="width:${d.score}%;background:${riskColor(d.score)};"></div></div>
         <span class="risk-num" style="color:${riskColor(d.score)};">${d.score}</span>
@@ -364,63 +801,112 @@ function renderDevices() {
   `).join('');
 }
 
-function showDetail(i) {
-  const d = devices[i];
-  document.querySelectorAll('.device-row').forEach((r, j) => r.classList.toggle('active', j === i));
-  document.getElementById('detail-device-name').textContent = d.name;
-  document.getElementById('detail-content').innerHTML = `
-    <div class="detail-grid" style="margin-bottom:12px;">
-      <div class="detail-item"><div class="detail-key">Owner</div><div class="detail-val">${d.owner}</div></div>
-      <div class="detail-item"><div class="detail-key">OS</div><div class="detail-val">${d.os}</div></div>
-      <div class="detail-item"><div class="detail-key">Active alerts</div><div class="detail-val" style="color:${d.alerts>0?'#A32D2D':'#3B6D11'}">${d.alerts}</div></div>
-      <div class="detail-item"><div class="detail-key">Patch status</div><div class="detail-val" style="color:${d.patches>0?'#3B6D11':'#A32D2D'}">${d.patches>0?'Up to date':'Missing patches'}</div></div>
-    </div>
-    <div style="font-size:12px;font-weight:500;color:var(--color-text-secondary);margin-bottom:8px;">RISK SCORE BREAKDOWN</div>
-    <div class="risk-breakdown">
-      ${d.issues.map(iss => `
-        <div class="rb-item">
-          <span class="rb-label">${iss.label}</span>
-          <div class="rb-bar"><div class="rb-fill" style="width:${iss.val}%;background:${iss.color};"></div></div>
-          <span class="rb-val" style="color:${iss.color};">${iss.val}</span>
+function showDeviceDetail(i) {
+  document.querySelectorAll('.device-row').forEach((r,j) => r.classList.toggle('selected', j===i));
+  const d = DEVICES[i];
+  const c = riskColor(d.score);
+  document.getElementById('device-detail').innerHTML = `
+    <div class="detail-panel">
+      <div class="detail-header" style="background:${d.score>=90?'#7F1D1D':d.score>=70?'#78350F':d.score>=40?'#1F2937':'#064E3B'};">
+        <div class="detail-device-name">${d.name}</div>
+        <div class="detail-device-sub">${d.owner} · ${d.os}</div>
+      </div>
+      <div class="detail-body">
+        <div class="detail-grid">
+          <div class="detail-item"><div class="detail-key">Owner</div><div class="detail-val">${d.owner}</div></div>
+          <div class="detail-item"><div class="detail-key">OS</div><div class="detail-val">${d.os}</div></div>
+          <div class="detail-item"><div class="detail-key">Active alerts</div><div class="detail-val" style="color:${d.alerts>0?'#DC2626':'#059669'}">${d.alerts}</div></div>
+          <div class="detail-item"><div class="detail-key">Patch status</div><div class="detail-val" style="color:${d.patched?'#059669':'#DC2626'}">${d.patched?'Up to date':'Missing patches'}</div></div>
+          <div class="detail-item"><div class="detail-key">Last seen</div><div class="detail-val">${d.seen}</div></div>
+          <div class="detail-item"><div class="detail-key">Status</div><div class="detail-val">${d.status.charAt(0).toUpperCase()+d.status.slice(1)}</div></div>
         </div>
-      `).join('')}
-    </div>
-    <div style="margin-top:12px;padding-top:12px;border-top:0.5px solid var(--color-border-tertiary);display:flex;align-items:center;justify-content:space-between;">
-      <span style="font-size:13px;font-weight:500;color:var(--color-text-primary);">Total risk score</span>
-      <span style="font-size:20px;font-weight:500;color:${riskColor(d.score)};">${d.score}/100</span>
+        <div class="detail-section-title">Risk score breakdown</div>
+        ${d.issues.map(iss => `
+          <div class="rb-item">
+            <span class="rb-label">${iss.label}</span>
+            <div class="rb-bar"><div class="rb-fill" style="width:${iss.val}%;background:${iss.color};"></div></div>
+            <span class="rb-val" style="color:${iss.color};">${iss.val}</span>
+          </div>
+        `).join('')}
+        <div class="detail-total">
+          <span class="detail-total-label">Total risk score</span>
+          <span class="detail-total-val" style="color:${c};">${d.score}<span style="font-size:13px;color:var(--text3);font-weight:400;">/100</span></span>
+        </div>
+      </div>
     </div>
   `;
 }
 
+// ── Render Alerts ──
 function renderAlerts() {
-  const list = document.getElementById('alert-list');
-  list.innerHTML = alerts.map(a => {
-    const badge = a.severity==='Critical'?'badge-red':a.severity==='High'?'badge-amber':a.severity==='Medium'?'badge-amber':'badge-gray';
-    return `<div class="alert-row">
-      <span class="alert-dot" style="background:${a.color};"></span>
-      <div><div class="alert-title">${a.title}</div><div class="alert-device">${a.device}</div></div>
-      <span class="badge ${badge}">${a.severity}</span>
-      <span style="font-size:12px;color:var(--color-text-secondary);">${a.detected}</span>
-    </div>`;
+  document.getElementById('alert-list').innerHTML = ALERTS.map((a,i) => {
+    const sev = a.severity === 'Critical' ? 'badge-red' : a.severity === 'High' ? 'badge-amber' : a.severity === 'Medium' ? 'badge-amber' : 'badge-gray';
+    return `
+      <div class="alert-row" id="alert-row-${i}" onclick="toggleAlert(${i})">
+        <div class="alert-summary">
+          <div class="alert-dot" style="background:${a.color};"></div>
+          <div>
+            <div class="alert-title-text">${a.title}</div>
+            <div class="alert-device-text">${a.device} · ${a.owner}</div>
+          </div>
+          <span class="badge ${sev}">${a.severity}</span>
+          <span style="font-size:12px;color:var(--text3);">${a.detected}</span>
+          ${alertStatusBadge(a.status)}
+          <div class="alert-expand-indicator">
+            <svg width="12" height="12" viewBox="0 0 12 12" fill="currentColor"><path d="M2 4l4 4 4-4" stroke="currentColor" stroke-width="1.5" fill="none" stroke-linecap="round" stroke-linejoin="round"/></svg>
+          </div>
+        </div>
+        <div class="alert-detail">
+          <div class="alert-desc">${a.description}</div>
+          <div class="alert-detail-grid">
+            <div class="adc"><div class="adc-label">Severity reasoning</div><div class="adc-val">${a.reasoning.substring(0,90)}${a.reasoning.length>90?'…':''}</div></div>
+            <div class="adc"><div class="adc-label">Device</div><div class="adc-val" style="font-family:'DM Mono',monospace;font-size:11px;">${a.device}</div></div>
+            <div class="adc"><div class="adc-label">Status</div><div class="adc-val">${alertStatusBadge(a.status)}</div></div>
+          </div>
+          <div class="alert-action">
+            <div class="alert-action-icon">→</div>
+            <div class="alert-action-content">
+              <div class="alert-action-label">Recommended action</div>
+              <div class="alert-action-text">${a.action}</div>
+            </div>
+          </div>
+        </div>
+      </div>
+    `;
   }).join('');
 }
 
+function toggleAlert(i) {
+  const row = document.getElementById(`alert-row-${i}`);
+  const isExpanded = row.classList.contains('expanded');
+  document.querySelectorAll('.alert-row').forEach(r => r.classList.remove('expanded'));
+  if (!isExpanded) row.classList.add('expanded');
+}
+
+// ── Render Patches ──
 function renderPatches() {
-  const list = document.getElementById('patch-list');
-  list.innerHTML = patches.map(p => {
-    const col = p.days > 60 ? '#E24B4A' : p.days > 30 ? '#BA7517' : '#EF9F27';
-    return `<div class="patch-row">
-      <div style="flex:1;"><div style="font-size:13px;font-weight:500;color:var(--color-text-primary);">${p.name}</div><div style="font-size:11px;color:var(--color-text-secondary);">${p.owner}</div></div>
-      <div class="patch-bar"><div class="patch-fill" style="width:${p.pct}%;background:#639922;"></div></div>
-      <span style="font-size:12px;font-weight:500;color:${col};min-width:110px;text-align:right;">${p.days} days since patch</span>
-    </div>`;
+  document.getElementById('patch-list').innerHTML = PATCHES.map(p => {
+    const col = p.days > 60 ? '#DC2626' : p.days > 30 ? '#D97706' : '#F59E0B';
+    return `
+      <div class="patch-row">
+        <div class="patch-info">
+          <div class="patch-device">${p.name}</div>
+          <div class="patch-owner">${p.owner}</div>
+        </div>
+        <div class="patch-bar-wrap">
+          <div class="patch-bar"><div class="patch-fill" style="width:${p.pct}%;background:#059669;"></div></div>
+        </div>
+        <span class="patch-days" style="color:${col};">${p.days} days since patch</span>
+        <span class="badge ${p.days>60?'badge-red':p.days>30?'badge-amber':'badge-amber'}">${p.days>60?'Critical':p.days>30?'Overdue':'Due soon'}</span>
+      </div>
+    `;
   }).join('');
 }
 
+// ── View switching ──
 function switchView(view, el) {
-  ['dashboard','devices','alerts','patches'].forEach(v => {
-    document.getElementById('view-'+v).classList.toggle('hidden', v !== view);
-  });
+  document.querySelectorAll('.view').forEach(v => v.classList.remove('active'));
+  document.getElementById('view-'+view).classList.add('active');
   document.querySelectorAll('.nav-item').forEach(n => n.classList.remove('active'));
   if (el) el.classList.add('active');
 }
@@ -429,3 +915,5 @@ renderDevices();
 renderAlerts();
 renderPatches();
 </script>
+</body>
+</html>
